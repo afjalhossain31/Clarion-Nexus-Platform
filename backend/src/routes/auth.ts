@@ -7,6 +7,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { User } from '../models/User';
 import * as memoryDb from '../memoryDb';
 import dotenv from 'dotenv';
+import { authenticateToken, AuthRequest } from '../middleware/auth';
 
 dotenv.config();
 
@@ -23,9 +24,9 @@ const getGoogleClient = () => {
 };
 
 
-// Helper to sign JWT
-const signToken = (userId: string, role: string) => {
-  return jwt.sign({ id: userId, role }, getJwtSecret(), { expiresIn: '7d' });
+// Helper to sign JWT - includes user info for MemoryDB recovery
+const signToken = (userId: string, role: string, extra?: { name?: string; email?: string; avatarUrl?: string }) => {
+  return jwt.sign({ id: userId, role, ...extra }, getJwtSecret(), { expiresIn: '7d' });
 };
 
 // Check if mongoose is connected
@@ -67,7 +68,7 @@ router.post(
         });
 
         await user.save();
-        const token = signToken(user.id, user.role);
+        const token = signToken(user.id, user.role, { name: user.name, email: user.email });
 
         return res.status(201).json({
           token,
@@ -98,7 +99,7 @@ router.post(
         };
 
         memoryDb.users.push(newUser);
-        const token = signToken(newUser._id, newUser.role);
+        const token = signToken(newUser._id, newUser.role, { name: newUser.name, email: newUser.email });
 
         return res.status(201).json({
           token,
@@ -146,7 +147,7 @@ router.post(
           return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        const token = signToken(user.id, user.role);
+        const token = signToken(user.id, user.role, { name: user.name, email: user.email, avatarUrl: user.avatarUrl });
 
         return res.json({
           token,
@@ -170,7 +171,7 @@ router.post(
           return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        const token = signToken(user._id, user.role);
+        const token = signToken(user._id, user.role, { name: user.name, email: user.email, avatarUrl: user.avatarUrl });
 
         return res.json({
           token,
@@ -216,7 +217,7 @@ router.post('/demo-login', async (req: Request, res: Response) => {
         await user.save();
       }
 
-      const token = signToken(user.id, user.role);
+      const token = signToken(user.id, user.role, { name: user.name, email: user.email, avatarUrl: user.avatarUrl });
 
       return res.json({
         token,
@@ -249,7 +250,7 @@ router.post('/demo-login', async (req: Request, res: Response) => {
         memoryDb.users.push(user);
       }
 
-      const token = signToken(user._id, user.role);
+      const token = signToken(user._id, user.role, { name: user.name, email: user.email, avatarUrl: user.avatarUrl });
 
       return res.json({
         token,
@@ -315,7 +316,7 @@ router.post('/google', async (req: Request, res: Response) => {
         await user.save();
       }
 
-      const token = signToken(user.id, user.role);
+      const token = signToken(user.id, user.role, { name: user.name, email: user.email, avatarUrl: user.avatarUrl });
       return res.json({
         token,
         user: { id: user.id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl }
@@ -343,7 +344,7 @@ router.post('/google', async (req: Request, res: Response) => {
         memoryDb.users.push(user);
       }
 
-      const token = signToken(user._id, user.role);
+      const token = signToken(user._id, user.role, { name: user.name, email: user.email, avatarUrl: user.avatarUrl });
       return res.json({
         token,
         user: { id: user._id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl }
@@ -353,6 +354,59 @@ router.post('/google', async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('[Google Auth Error]', err.message);
     return res.status(401).json({ message: 'Google authentication failed. Token may be invalid or expired.' });
+  }
+});
+
+// @route   GET /api/auth/me
+// @desc    Get current user profile details
+router.get('/me', authenticateToken, async (req: AuthRequest, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) return res.status(401).json({ message: 'User ID missing' });
+
+  try {
+    if (isDbConnected()) {
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      return res.json({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatarUrl: user.avatarUrl,
+        createdAt: user.createdAt
+      });
+    } else {
+      // MemoryDB fallback — try to find in memory first
+      const user = memoryDb.users.find(u => u._id === userId);
+      if (!user) {
+        // User not found in MemoryDB (server may have restarted) — fall back to JWT payload data
+        const jwtUser = req.user!;
+        if (!jwtUser.name || !jwtUser.email) {
+          return res.status(404).json({ message: 'User not found. Please log in again.' });
+        }
+        return res.json({
+          id: jwtUser.id,
+          name: jwtUser.name,
+          email: jwtUser.email,
+          role: jwtUser.role,
+          avatarUrl: jwtUser.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${jwtUser.email}`,
+          createdAt: null
+        });
+      }
+      return res.json({
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatarUrl: user.avatarUrl,
+        createdAt: user.createdAt
+      });
+    }
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error retrieving profile' });
   }
 });
 

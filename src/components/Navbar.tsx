@@ -97,7 +97,7 @@ export default function Navbar() {
             {/* Auth Actions */}
             {isAuthenticated && user ? (
               <div className="flex items-center gap-3 pl-2 border-l border-card-border">
-                <div className="flex items-center gap-2">
+                <Link href="/profile" className="flex items-center gap-2 hover:opacity-90 hover:scale-[1.01] active:scale-99 transition-all duration-200">
                   <img
                     src={user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`}
                     alt={user.name}
@@ -111,7 +111,7 @@ export default function Navbar() {
                       {user.role}
                     </span>
                   </div>
-                </div>
+                </Link>
                 <button
                   onClick={logout}
                   className="p-2 rounded-lg text-app-fg/60 hover:text-red-500 hover:bg-red-500/10 hover:scale-105 active:scale-95 transition-all duration-200"
@@ -183,7 +183,11 @@ export default function Navbar() {
 
             {isAuthenticated && user ? (
               <div className="pt-4 mt-4 border-t border-card-border flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <Link 
+                  href="/profile" 
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 hover:opacity-90 transition-opacity"
+                >
                   <img
                     src={user.avatarUrl}
                     alt={user.name}
@@ -193,7 +197,7 @@ export default function Navbar() {
                     <p className="text-sm font-semibold text-app-fg">{user.name}</p>
                     <p className="text-xs text-app-fg/60 capitalize">{user.role}</p>
                   </div>
-                </div>
+                </Link>
                 <button
                   onClick={() => {
                     setIsOpen(false);
