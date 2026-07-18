@@ -15,7 +15,7 @@ export default function AddRequestPage() {
   const [fullDesc, setFullDesc] = useState('');
   const [budget, setBudget] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  
+
   // UX states
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -88,7 +88,7 @@ export default function AddRequestPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
-      
+
       {/* Title */}
       <div className="flex flex-col gap-2 mb-8 text-left">
         <h1 className="font-display text-3xl font-extrabold text-app-fg tracking-tight sm:text-4xl">
@@ -101,7 +101,7 @@ export default function AddRequestPage() {
 
       {/* Form Card */}
       <div className="rounded-2xl border border-card-border bg-card-bg/60 p-6 sm:p-8 shadow-xl backdrop-blur-xs">
-        
+
         {formError && (
           <div className="mb-6 flex gap-2 rounded-xl bg-red-500/10 border border-red-500/20 p-3.5 text-xs text-red-500 items-start text-left">
             <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
@@ -110,7 +110,7 @@ export default function AddRequestPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6 text-left">
-          
+
           {/* Project Title */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-bold uppercase tracking-wider text-app-fg/60 pl-1">
@@ -122,7 +122,7 @@ export default function AddRequestPage() {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Real Estate Client CRM Portal"
+                placeholder="Real Estate Client CRM Portal"
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-card-border bg-app-bg text-sm text-app-fg focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30"
                 required
               />
@@ -138,7 +138,7 @@ export default function AddRequestPage() {
               type="text"
               value={shortDesc}
               onChange={(e) => setShortDesc(e.target.value)}
-              placeholder="e.g. Next.js dashboard with Stripe and Mapbox mapping..."
+              placeholder="Next.js dashboard with Stripe and Mapbox mapping..."
               className="w-full px-4 py-2.5 rounded-xl border border-card-border bg-app-bg text-sm text-app-fg focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30"
               maxLength={150}
               required
@@ -148,7 +148,7 @@ export default function AddRequestPage() {
 
           {/* Budget & Optional Image Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            
+
             {/* Budget */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-bold uppercase tracking-wider text-app-fg/60 pl-1">
@@ -194,7 +194,7 @@ export default function AddRequestPage() {
             <textarea
               value={fullDesc}
               onChange={(e) => setFullDesc(e.target.value)}
-              placeholder="Provide a comprehensive listing of features, endpoints, design assets, database persistence requirements, and integration milestones you expect in the build..."
+              placeholder="List the features, APIs, database specs, and milestones you expect in the build..."
               rows={6}
               className="w-full px-4 py-2.5 rounded-xl border border-card-border bg-app-bg text-sm text-app-fg focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30 whitespace-pre-wrap"
               required

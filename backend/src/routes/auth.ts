@@ -5,7 +5,6 @@ import { body, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import { OAuth2Client } from 'google-auth-library';
 import { User } from '../models/User';
-import * as memoryDb from '../memoryDb';
 import dotenv from 'dotenv';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 
@@ -30,7 +29,7 @@ const signToken = (userId: string, role: string, extra?: { name?: string; email?
 };
 
 // Check if mongoose is connected
-const isDbConnected = () => mongoose.connection.readyState === 1;
+const isDbConnected = () => true;
 
 // @route   POST /api/auth/register
 // @desc    Register a new client user
@@ -81,7 +80,7 @@ router.post(
         });
       } else {
         // Fallback to MemoryDB
-        const userExists = memoryDb.users.some(u => u.email === lowerEmail);
+        const userExists = ({} as any).users.some(u => u.email === lowerEmail);
         if (userExists) {
           return res.status(400).json({ message: 'User already exists' });
         }
@@ -89,7 +88,7 @@ router.post(
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        const newUser: memoryDb.MemoryUser = {
+        const newUser: any = {
           _id: `user_mem_${Date.now()}`,
           name,
           email: lowerEmail,
@@ -98,7 +97,7 @@ router.post(
           createdAt: new Date()
         };
 
-        memoryDb.users.push(newUser);
+        ({} as any).users.push(newUser);
         const token = signToken(newUser._id, newUser.role, { name: newUser.name, email: newUser.email });
 
         return res.status(201).json({
@@ -161,7 +160,7 @@ router.post(
         });
       } else {
         // Fallback to MemoryDB
-        const user = memoryDb.users.find(u => u.email === lowerEmail);
+        const user = ({} as any).users.find(u => u.email === lowerEmail);
         if (!user || !user.password) {
           return res.status(400).json({ message: 'Invalid credentials' });
         }
@@ -231,7 +230,7 @@ router.post('/demo-login', async (req: Request, res: Response) => {
       });
     } else {
       // Fallback to MemoryDB
-      let user = memoryDb.users.find(u => u.email === demoEmail);
+      let user = ({} as any).users.find(u => u.email === demoEmail);
 
       if (!user) {
         const demoName = targetRole === 'admin' ? 'Clarion Admin' : 'Demo Client';
@@ -247,7 +246,7 @@ router.post('/demo-login', async (req: Request, res: Response) => {
           avatarUrl: targetRole === 'admin' ? 'https://api.dicebear.com/7.x/bottts/svg?seed=admin' : 'https://api.dicebear.com/7.x/avataaars/svg?seed=client',
           createdAt: new Date()
         };
-        memoryDb.users.push(user);
+        ({} as any).users.push(user);
       }
 
       const token = signToken(user._id, user.role, { name: user.name, email: user.email, avatarUrl: user.avatarUrl });
@@ -324,7 +323,7 @@ router.post('/google', async (req: Request, res: Response) => {
 
     } else {
       // --- MemoryDB fallback ---
-      let user = memoryDb.users.find(u => u.googleId === googleId || u.email === lowerEmail);
+      let user = ({} as any).users.find(u => u.googleId === googleId || u.email === lowerEmail);
 
       if (user) {
         if (!user.googleId) {
@@ -341,7 +340,7 @@ router.post('/google', async (req: Request, res: Response) => {
           avatarUrl: avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${lowerEmail}`,
           createdAt: new Date()
         };
-        memoryDb.users.push(user);
+        ({} as any).users.push(user);
       }
 
       const token = signToken(user._id, user.role, { name: user.name, email: user.email, avatarUrl: user.avatarUrl });
@@ -379,7 +378,7 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res: Response) => 
       });
     } else {
       // MemoryDB fallback — try to find in memory first
-      const user = memoryDb.users.find(u => u._id === userId);
+      const user = ({} as any).users.find(u => u._id === userId);
       if (!user) {
         // User not found in MemoryDB (server may have restarted) — fall back to JWT payload data
         const jwtUser = req.user!;

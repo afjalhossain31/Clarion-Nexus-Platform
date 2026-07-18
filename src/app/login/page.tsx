@@ -4,13 +4,16 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
-import { Sparkles, Mail, Lock, AlertCircle, Loader, LogIn, ShieldAlert } from 'lucide-react';
+import { Sparkles, Mail, Lock, AlertCircle, Loader, LogIn, UserPlus, User, ShieldAlert } from 'lucide-react';
 import Script from 'next/script';
 
 export default function LoginPage() {
-  const { login, demoLogin, googleLogin, isAuthenticated, error, setError, isLoading } = useAuth();
+  const { login, register, demoLogin, googleLogin, isAuthenticated, error, setError, isLoading } = useAuth();
+  const [isRegister, setIsRegister] = useState(false);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [reoPassword, setReoPassword] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -42,7 +45,7 @@ export default function LoginPage() {
           client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '192933809772-3q60ho5ekgndc0ncbqsu6vtq8oo8unfs.apps.googleusercontent.com',
           callback: handleCredentialResponse,
         });
-        
+
         const container = document.getElementById('googleSignInButton');
         if (container) {
           google.accounts.id.renderButton(container, {
@@ -75,9 +78,20 @@ export default function LoginPage() {
     e.preventDefault();
     setValidationError(null);
 
-    if (!email || !password) {
-      setValidationError('Please populate both email and password fields.');
-      return;
+    if (isRegister) {
+      if (!name || !email || !password || !reoPassword) {
+        setValidationError('Please populate all fields.');
+        return;
+      }
+      if (password !== reoPassword) {
+        setValidationError('Passwords do not match.');
+        return;
+      }
+    } else {
+      if (!email || !password) {
+        setValidationError('Please populate both email and password fields.');
+        return;
+      }
     }
 
     if (password.length < 6) {
@@ -86,7 +100,16 @@ export default function LoginPage() {
     }
 
     try {
-      await login(email, password);
+      if (isRegister) {
+        await register(name, email, password);
+        // Switch to login mode and clear passwords after successful registration
+        setIsRegister(false);
+        setPassword('');
+        setReoPassword('');
+        setValidationError('Registration successful! Please sign in.'); // Can act as a success message if styled nicely, or just a temporary alert
+      } else {
+        await login(email, password);
+      }
     } catch (err) {
       // Error handled by context
     }
@@ -112,10 +135,10 @@ export default function LoginPage() {
             <Sparkles className="h-5 w-5" />
           </div>
           <h2 className="font-display text-2xl font-bold tracking-tight text-app-fg">
-            Welcome back to Nexus
+            {isRegister ? 'Create an Account' : 'Welcome back to Nexus'}
           </h2>
           <p className="text-xs text-app-fg/60 mt-1">
-            Access your custom project requests and AI proposal creators.
+            {isRegister ? 'Join our platform to get started.' : 'Access your custom project requests and AI proposal creators.'}
           </p>
         </div>
 
@@ -129,6 +152,25 @@ export default function LoginPage() {
 
         {/* Credentials Form */}
         <form onSubmit={handleSubmit} className="space-y-4 text-left">
+
+          {isRegister && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-app-fg/60">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-app-fg/40" />
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="John Doe"
+                  suppressHydrationWarning
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-card-border bg-app-bg text-sm focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30"
+                />
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-bold uppercase tracking-wider text-app-fg/60">
@@ -164,6 +206,25 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {isRegister && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-app-fg/60">
+                Re-enter Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-app-fg/40" />
+                <input
+                  type="password"
+                  value={reoPassword}
+                  onChange={(e) => setReoPassword(e.target.value)}
+                  placeholder="••••••••"
+                  suppressHydrationWarning
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-card-border bg-app-bg text-sm focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30"
+                />
+              </div>
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={isLoading}
@@ -171,6 +232,11 @@ export default function LoginPage() {
           >
             {isLoading ? (
               <Loader className="h-4.5 w-4.5 animate-spin" />
+            ) : isRegister ? (
+              <>
+                Register
+                <UserPlus className="h-4 w-4" />
+              </>
             ) : (
               <>
                 Sign In
@@ -179,6 +245,19 @@ export default function LoginPage() {
             )}
           </button>
 
+          <div className="text-center mt-3">
+            <button
+              type="button"
+              onClick={() => {
+                setIsRegister(!isRegister);
+                setValidationError(null);
+                setError(null);
+              }}
+              className="text-xs text-app-fg/60 hover:text-brand-blue transition-colors cursor-pointer"
+            >
+              {isRegister ? 'Already have an account? Sign In' : 'Don\'t have an account? Register'}
+            </button>
+          </div>
         </form>
 
         {/* Divider */}

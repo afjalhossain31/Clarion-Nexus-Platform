@@ -17,7 +17,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string) => Promise<void>; // registers Client
+  register: (name: string, email: string, password: string) => Promise<void>; // registers Client
   demoLogin: (role: 'client' | 'admin') => Promise<void>;
   googleLogin: (credential: string) => Promise<void>;
   logout: () => void;
@@ -84,22 +84,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const register = async (name: string, email: string) => {
+  const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      // For registration in agency website, we'll set a standard password 'nexuspass123'
       const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password: 'nexuspass123' }),
+        body: JSON.stringify({ name, email, password }),
       });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.message || 'Registration failed');
       }
-      handleAuthResponse(data);
-      router.push('/');
+      // Do NOT log the user in automatically. User requested to go to login page.
     } catch (err: any) {
       setError(err.message || 'Connection error');
       throw err;

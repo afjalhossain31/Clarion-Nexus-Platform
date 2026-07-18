@@ -4,12 +4,14 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
-import { Sparkles, User, Mail, AlertCircle, Loader, UserPlus } from 'lucide-react';
+import { Sparkles, User, Mail, Lock, AlertCircle, Loader, UserPlus } from 'lucide-react';
 
 export default function RegisterPage() {
   const { register, demoLogin, isAuthenticated, error, setError, isLoading } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [reoPassword, setReoPassword] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -24,8 +26,8 @@ export default function RegisterPage() {
     e.preventDefault();
     setValidationError(null);
 
-    if (!name || !email) {
-      setValidationError('Please populate both your name and email address.');
+    if (!name || !email || !password || !reoPassword) {
+      setValidationError('Please populate all fields.');
       return;
     }
 
@@ -34,8 +36,20 @@ export default function RegisterPage() {
       return;
     }
 
+    if (password !== reoPassword) {
+      setValidationError('Passwords do not match.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setValidationError('Password must contain at least 6 characters.');
+      return;
+    }
+
     try {
-      await register(name, email);
+      await register(name, email, password);
+      // Registration successful, redirect to login
+      router.push('/login');
     } catch (err) {
       // Error handled by context
     }
@@ -107,6 +121,40 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="jane.doe@example.com"
+                suppressHydrationWarning
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-card-border bg-app-bg text-sm focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-app-fg/60">
+              Account Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-app-fg/40" />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                suppressHydrationWarning
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-card-border bg-app-bg text-sm focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-app-fg/60">
+              Re-enter Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-app-fg/40" />
+              <input
+                type="password"
+                value={reoPassword}
+                onChange={(e) => setReoPassword(e.target.value)}
+                placeholder="••••••••"
                 suppressHydrationWarning
                 className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-card-border bg-app-bg text-sm focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30"
               />

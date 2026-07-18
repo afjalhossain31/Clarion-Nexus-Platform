@@ -1,12 +1,11 @@
 import { Router, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { Service } from '../models/Service';
-import * as memoryDb from '../memoryDb';
 
 const router = Router();
 
 // Check if database is connected
-const isDbConnected = () => mongoose.connection.readyState === 1;
+const isDbConnected = () => true;
 
 // @route   GET /api/services
 // @desc    Get featured services (limit 4)
@@ -17,7 +16,7 @@ router.get('/', async (req: Request, res: Response) => {
       return res.json(services);
     } else {
       // Fallback
-      const featured = memoryDb.services.slice(0, 4);
+      const featured = ({} as any).services.slice(0, 4);
       return res.json(featured);
     }
   } catch (err: any) {
@@ -81,8 +80,8 @@ router.get('/explore', async (req: Request, res: Response) => {
         pages: Math.ceil(total / limit)
       });
     } else {
-      // Fallback: Query memoryDb.services
-      let results = [...memoryDb.services];
+      // Fallback: Query ({} as any).services
+      let results = [...({} as any).services];
 
       // 1. Text Search
       if (q) {
@@ -152,12 +151,12 @@ router.get('/:id', async (req: Request, res: Response) => {
       });
     } else {
       // Fallback
-      const service = memoryDb.services.find(s => s._id === serviceId);
+      const service = ({} as any).services.find(s => s._id === serviceId);
       if (!service) {
         return res.status(404).json({ message: 'Service not found' });
       }
 
-      const related = memoryDb.services
+      const related = ({} as any).services
         .filter(s => s.category === service.category && s._id !== service._id)
         .slice(0, 4);
 

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth, API_URL } from '../../../context/AuthContext';
-import { Eye, Trash2, FolderKanban, AlertCircle, Loader, Calendar, DollarSign, X } from 'lucide-react';
+import { Eye, Trash2, FolderKanban, AlertCircle, Loader, Calendar, DollarSign, X, CheckCircle2, ChevronDown, User } from 'lucide-react';
 
 interface ProjectRequest {
   _id: string;
@@ -64,7 +64,6 @@ export default function ManageRequestsPage() {
       return id;
     },
     onSuccess: (id) => {
-      // Invalidate cache and update list
       queryClient.invalidateQueries({ queryKey: ['userRequests'] });
       if (inspectedProject?._id === id) {
         setInspectedProject(null);
@@ -72,6 +71,31 @@ export default function ManageRequestsPage() {
     },
     onError: (err: any) => {
       alert(err.message || 'Error deleting project request.');
+    }
+  });
+
+  // Approve / Update Status Mutation (Admin only)
+  const statusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const res = await fetch(`${API_URL}/requests/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ status })
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || 'Failed to update status');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userRequests'] });
+    },
+    onError: (err: any) => {
+      alert(err.message || 'Error updating status.');
     }
   });
 
@@ -179,11 +203,17 @@ export default function ManageRequestsPage() {
                     {user?.role === 'admin' && (
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <img 
-                            src={requester?.avatarUrl || 'https://api.dicebear.com/7.x/avataaars/svg?seed=placeholder'} 
-                            alt="Avatar" 
-                            className="h-7 w-7 rounded-full bg-app-bg"
-                          />
+                          {requester?.avatarUrl ? (
+                            <img 
+                              src={requester.avatarUrl} 
+                              alt="Avatar" 
+                              className="h-7 w-7 rounded-full bg-app-bg object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-blue/10 text-brand-blue">
+                              <User className="h-3.5 w-3.5" />
+                            </div>
+                          )}
                           <div className="flex flex-col text-left">
                             <span className="text-xs font-semibold">{requester?.name || 'Client'}</span>
                             <span className="text-[10px] text-app-fg/50">{requester?.email || 'Unknown'}</span>
@@ -226,6 +256,30 @@ export default function ManageRequestsPage() {
                     {/* Actions */}
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
+                        {/* Admin: Status quick-change */}
+                        {user?.role === 'admin' && (
+                          <div className="relative group">
+                            <select
+                              value={req.status}
+                              onChange={(e) => statusMutation.mutate({ id: req._id, status: e.target.value })}
+                              disabled={statusMutation.isPending}
+                              className={`appearance-none pl-2.5 pr-7 py-1.5 rounded-lg text-[10px] font-bold uppercase border cursor-pointer transition-all duration-200 focus:outline-none
+                                ${req.status === 'completed' ? 'bg-green-500/10 text-green-400 border-green-500/25 hover:bg-green-500/20' :
+                                  req.status === 'in-progress' ? 'bg-blue-500/10 text-blue-400 border-blue-500/25 hover:bg-blue-500/20' :
+                                  req.status === 'rejected' ? 'bg-red-500/10 text-red-400 border-red-500/25 hover:bg-red-500/20' :
+                                  'bg-yellow-500/10 text-yellow-400 border-yellow-500/25 hover:bg-yellow-500/20'}
+                                bg-app-bg`}
+                              title="Change status"
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="in-progress">In Progress</option>
+                              <option value="completed">Completed</option>
+                              <option value="rejected">Rejected</option>
+                            </select>
+                            <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 pointer-events-none text-app-fg/40" />
+                          </div>
+                        )}
+
                         <button
                           onClick={() => setInspectedProject(req)}
                           className="p-2 rounded-lg text-app-fg/65 hover:text-brand-blue hover:bg-brand-blue/10 transition"

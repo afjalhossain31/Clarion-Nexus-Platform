@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useAuth } from '../context/AuthContext';
-import { Sun, Moon, Menu, X, LogOut, Sparkles, FolderKanban } from 'lucide-react';
+import { Sun, Moon, Menu, X, LogOut, Sparkles, FolderKanban, User } from 'lucide-react';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -98,11 +98,17 @@ export default function Navbar() {
             {isAuthenticated && user ? (
               <div className="flex items-center gap-3 pl-2 border-l border-card-border">
                 <Link href="/profile" className="flex items-center gap-2 hover:opacity-90 hover:scale-[1.01] active:scale-99 transition-all duration-200">
-                  <img
-                    src={user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`}
-                    alt={user.name}
-                    className="h-8 w-8 rounded-full border border-brand-blue/30 bg-card-bg"
-                  />
+                  {user.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="h-8 w-8 rounded-full border border-brand-blue/30 bg-card-bg object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-brand-blue/30 bg-brand-blue/10 text-brand-blue">
+                      <User className="h-4 w-4" />
+                    </div>
+                  )}
                   <div className="flex flex-col text-left">
                     <span className="text-xs font-semibold text-app-fg leading-tight">
                       {user.name}
@@ -188,11 +194,17 @@ export default function Navbar() {
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-2 hover:opacity-90 transition-opacity"
                 >
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.name}
-                    className="h-9 w-9 rounded-full bg-card-bg"
-                  />
+                  {user.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="h-9 w-9 rounded-full bg-card-bg object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-blue/30 bg-brand-blue/10 text-brand-blue">
+                      <User className="h-4.5 w-4.5" />
+                    </div>
+                  )}
                   <div>
                     <p className="text-sm font-semibold text-app-fg">{user.name}</p>
                     <p className="text-xs text-app-fg/60 capitalize">{user.role}</p>

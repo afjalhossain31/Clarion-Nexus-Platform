@@ -128,7 +128,7 @@ export default function ProfilePage() {
     );
   }
 
-  const userAvatar = profile?.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.email || 'default'}`;
+  const userAvatar = profile?.avatarUrl;
   const formattedDate = profile?.createdAt
     ? new Date(profile.createdAt).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -168,11 +168,17 @@ export default function ProfilePage() {
             {/* Avatar with Glow Ring */}
             <div className="relative group">
               <div className="absolute -inset-0.5 rounded-full bg-gradient-to-tr from-brand-blue to-brand-purple opacity-70 blur-sm group-hover:opacity-100 transition duration-300" />
-              <img
-                src={userAvatar}
-                alt={profile?.name}
-                className="relative h-24 w-24 rounded-full border border-card-border bg-app-bg object-cover"
-              />
+              {userAvatar ? (
+                <img
+                  src={userAvatar}
+                  alt={profile?.name}
+                  className="relative h-24 w-24 rounded-full border border-card-border bg-app-bg object-cover"
+                />
+              ) : (
+                <div className="relative flex h-24 w-24 items-center justify-center rounded-full border border-card-border bg-brand-blue/10 text-brand-blue">
+                  <UserIcon className="h-10 w-10" />
+                </div>
+              )}
             </div>
 
             {/* Profile Meta Info */}

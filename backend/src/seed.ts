@@ -103,14 +103,14 @@ const seedDB = async () => {
         email: 'demo@nexus.com',
         password: demoPassword,
         role: 'client' as const,
-        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=client'
+        avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg'
       },
       {
         name: 'Clarion Admin',
         email: 'admin@nexus.com',
         password: demoPassword,
         role: 'admin' as const,
-        avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=admin'
+        avatarUrl: 'https://randomuser.me/api/portraits/men/44.jpg'
       }
     ];
 

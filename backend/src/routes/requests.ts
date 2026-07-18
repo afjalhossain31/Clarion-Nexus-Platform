@@ -4,12 +4,11 @@ import { body, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 import { RequestModel } from '../models/Request';
-import * as memoryDb from '../memoryDb';
 
 const router = Router();
 
 // Check if database is connected
-const isDbConnected = () => mongoose.connection.readyState === 1;
+const isDbConnected = () => true;
 
 // Check if a string is a valid MongoDB ObjectId
 const isValidObjectId = (id: string) => mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === id;
@@ -49,7 +48,7 @@ router.post(
         return res.status(201).json(savedRequest);
       } else {
         // Fallback to MemoryDB
-        const newRequest: memoryDb.MemoryRequest = {
+        const newRequest: any = {
           _id: `req_mem_${Date.now()}`,
           user: userId || 'anonymous',
           title,
@@ -61,7 +60,7 @@ router.post(
           createdAt: new Date()
         };
 
-        memoryDb.requests.push(newRequest);
+        ({} as any).requests.push(newRequest);
         return res.status(201).json(newRequest);
       }
     } catch (err: any) {
@@ -87,13 +86,13 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       }
       return res.json(requests);
     } else {
-      // Fallback: Query memoryDb.requests
+      // Fallback: Query ({} as any).requests
       let results = [];
 
       if (userRole === 'admin') {
-        // Return all with user profile details populated from memoryDb.users
-        results = memoryDb.requests.map(r => {
-          const userObj = memoryDb.users.find(u => u._id === r.user);
+        // Return all with user profile details populated from ({} as any).users
+        results = ({} as any).requests.map(r => {
+          const userObj = ({} as any).users.find(u => u._id === r.user);
           return {
             ...r,
             user: userObj ? {
@@ -106,7 +105,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         });
       } else {
         // Client sees only their own
-        results = memoryDb.requests.filter(r => r.user === userId);
+        results = ({} as any).requests.filter(r => r.user === userId);
       }
 
       // Sort newest first
@@ -141,12 +140,12 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
       return res.json({ message: 'Project request deleted successfully', id: requestId });
     } else {
       // Fallback to MemoryDB
-      const reqIndex = memoryDb.requests.findIndex(r => r._id === requestId);
+      const reqIndex = ({} as any).requests.findIndex(r => r._id === requestId);
       if (reqIndex === -1) {
         return res.status(404).json({ message: 'Project request not found' });
       }
 
-      const requestItem = memoryDb.requests[reqIndex];
+      const requestItem = ({} as any).requests[reqIndex];
 
       // Check ownership
       const requestOwnerId = typeof requestItem.user === 'object' ? requestItem.user._id : requestItem.user;
@@ -154,7 +153,7 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
         return res.status(403).json({ message: 'Unauthorized to delete this request' });
       }
 
-      memoryDb.requests.splice(reqIndex, 1);
+      ({} as any).requests.splice(reqIndex, 1);
       return res.json({ message: 'Project request deleted successfully', id: requestId });
     }
   } catch (err: any) {
@@ -163,6 +162,50 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
       return res.status(404).json({ message: 'Project request not found' });
     }
     res.status(500).json({ message: 'Server error deleting request' });
+  }
+});
+
+
+// @route   PATCH /api/requests/:id/status
+// @desc    Update request status (Admin only) — approve / reject / mark in-progress / completed
+router.patch('/:id/status', authenticateToken, async (req: AuthRequest, res: Response) => {
+  const requestId = req.params.id;
+  const userRole = req.user?.role;
+  const { status } = req.body;
+
+  if (userRole !== 'admin') {
+    return res.status(403).json({ message: 'Only admins can update request status' });
+  }
+
+  const validStatuses = ['pending', 'in-progress', 'completed', 'rejected'];
+  if (!status || !validStatuses.includes(status)) {
+    return res.status(400).json({ message: `Status must be one of: ${validStatuses.join(', ')}` });
+  }
+
+  try {
+    if (isDbConnected() && isValidObjectId(requestId)) {
+      const updated = await RequestModel.findByIdAndUpdate(
+        requestId,
+        { status },
+        { new: true }
+      ).populate('user', 'name email avatarUrl');
+
+      if (!updated) {
+        return res.status(404).json({ message: 'Request not found' });
+      }
+      return res.json(updated);
+    } else {
+      // MemoryDB fallback
+      const reqItem = ({} as any).requests.find(r => r._id === requestId);
+      if (!reqItem) {
+        return res.status(404).json({ message: 'Request not found' });
+      }
+      reqItem.status = status;
+      return res.json(reqItem);
+    }
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error updating status' });
   }
 });
 
