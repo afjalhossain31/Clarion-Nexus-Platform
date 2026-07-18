@@ -19,7 +19,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string) => Promise<void>; // registers Client
   demoLogin: (role: 'client' | 'admin') => Promise<void>;
-  googleLogin: (name: string, email: string, googleId: string, avatarUrl: string) => Promise<void>;
+  googleLogin: (credential: string) => Promise<void>;
   logout: () => void;
   error: string | null;
   setError: (err: string | null) => void;

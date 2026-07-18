@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
-import { Sparkles, Mail, Lock, AlertCircle, ArrowRight, Loader, LogIn, ShieldAlert } from 'lucide-react';
+import { Sparkles, Mail, Lock, AlertCircle, Loader, LogIn, ShieldAlert } from 'lucide-react';
+import Script from 'next/script';
 
 export default function LoginPage() {
   const { login, demoLogin, googleLogin, isAuthenticated, error, setError, isLoading } = useAuth();
@@ -19,6 +20,56 @@ export default function LoginPage() {
       router.push('/');
     }
   }, [isAuthenticated, router, setError]);
+
+  // Handle the credential token returned by Google's popup
+  const handleCredentialResponse = async (response: any) => {
+    if (response.credential) {
+      setValidationError(null);
+      try {
+        await googleLogin(response.credential);
+      } catch (err) {
+        // Error is handled by context
+      }
+    }
+  };
+
+  // Initialize and render the Google button
+  useEffect(() => {
+    const initializeGoogle = () => {
+      const google = (window as any).google;
+      if (google) {
+        google.accounts.id.initialize({
+          client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '192933809772-3q60ho5ekgndc0ncbqsu6vtq8oo8unfs.apps.googleusercontent.com',
+          callback: handleCredentialResponse,
+        });
+        
+        const container = document.getElementById('googleSignInButton');
+        if (container) {
+          google.accounts.id.renderButton(container, {
+            theme: 'filled_blue',
+            size: 'large',
+            width: container.offsetWidth || 382,
+            text: 'continue_with',
+            shape: 'rectangular',
+          });
+        }
+      }
+    };
+
+    // If script already loaded
+    if ((window as any).google) {
+      initializeGoogle();
+    } else {
+      // Check every 300ms until loaded
+      const timer = setInterval(() => {
+        if ((window as any).google) {
+          initializeGoogle();
+          clearInterval(timer);
+        }
+      }, 300);
+      return () => clearInterval(timer);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,21 +96,6 @@ export default function LoginPage() {
     setValidationError(null);
     try {
       await demoLogin(role);
-    } catch (err) {
-      // Error handled by context
-    }
-  };
-
-  const handleGoogleClick = async () => {
-    setValidationError(null);
-    try {
-      // Simulate Google Sign-In with predefined user
-      await googleLogin(
-        'Jane Google',
-        'jane.google@gmail.com',
-        'google_oauth_id_998877',
-        'https://api.dicebear.com/7.x/avataaars/svg?seed=jane'
-      );
     } catch (err) {
       // Error handled by context
     }
@@ -155,32 +191,14 @@ export default function LoginPage() {
 
         {/* Social & Demo Buttons Stack */}
         <div className="space-y-2.5">
-          {/* Simulated Google Button */}
-          <button
-            type="button"
-            onClick={handleGoogleClick}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-card-border bg-card-bg hover:bg-card-border/50 text-xs font-semibold text-app-fg transition cursor-pointer"
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24">
-              <path
-                fill="#4285F4"
-                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.69c-.29 1.5-1.14 2.78-2.4 3.62v3.02h3.87c2.26-2.08 3.58-5.14 3.58-8.49z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 24c3.24 0 5.97-1.08 7.96-2.91l-3.87-3.02c-1.08.72-2.45 1.16-4.09 1.16-3.15 0-5.81-2.13-6.76-5.01H1.27v3.11C3.25 21.89 7.39 24 12 24z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.24 14.22A7.16 7.16 0 0 1 4.8 12c0-.79.13-1.57.38-2.31V6.58H1.27A11.96 11.96 0 0 0 0 12c0 1.92.45 3.74 1.27 5.42l3.97-3.2z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.39 0 3.25 2.11 1.27 6.58l3.97 3.21c.95-2.88 3.61-5.04 6.76-5.04z"
-              />
-            </svg>
-            Sign in with Google
-          </button>
+          {/* Google Sign-In SDK Button Container */}
+          <div className="w-full flex flex-col items-center">
+            <div id="googleSignInButton" className="w-full min-h-[40px] flex justify-center"></div>
+            <Script
+              src="https://accounts.google.com/gsi/client"
+              strategy="afterInteractive"
+            />
+          </div>
 
           {/* Quick Demos */}
           <div className="grid grid-cols-2 gap-2">

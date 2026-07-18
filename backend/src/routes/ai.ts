@@ -118,8 +118,6 @@ router.post('/chat', authenticateToken, async (req: AuthRequest, res: Response) 
 
     if (genAI) {
       try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        
         const systemPrompt = `You are NexusAI, a helpful, highly professional virtual advisor for Clarion Nexus, a premium digital agency.
 Our services include:
 - Web Development: Full-stack applications, next.js projects, e-commerce ($1499+)
@@ -135,14 +133,21 @@ In your response, write exactly three suggested follow-up question chips for the
 - Suggestion 2
 - Suggestion 3`;
 
+        const model = genAI.getGenerativeModel({ 
+          model: 'gemini-1.5-flash',
+          systemInstruction: {
+            role: 'system',
+            parts: [{ text: systemPrompt }]
+          }
+        });
+
         const historyData = recentMessages.slice(0, -1).map(msg => ({
           role: msg.role === 'user' ? 'user' : 'model',
           parts: [{ text: msg.content }]
         }));
 
         const chat = model.startChat({
-          history: historyData,
-          systemInstruction: systemPrompt
+          history: historyData
         });
 
         const result = await chat.sendMessage(message);
