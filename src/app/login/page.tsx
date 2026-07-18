@@ -67,9 +67,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-16 bg-radial-gradient">
-      
+
       <div className="w-full max-w-md rounded-2xl border border-card-border bg-card-bg/85 p-8 shadow-xl backdrop-blur-md">
-        
+
         {/* Brand Header */}
         <div className="text-center mb-8">
           <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-blue to-brand-purple text-white mb-3">
@@ -93,7 +93,7 @@ export default function LoginPage() {
 
         {/* Credentials Form */}
         <form onSubmit={handleSubmit} className="space-y-4 text-left">
-          
+
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-bold uppercase tracking-wider text-app-fg/60">
               Email Address
@@ -179,7 +179,7 @@ export default function LoginPage() {
                 d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.39 0 3.25 2.11 1.27 6.58l3.97 3.21c.95-2.88 3.61-5.04 6.76-5.04z"
               />
             </svg>
-            Google Identity
+            Sign in with Google
           </button>
 
           {/* Quick Demos */}
