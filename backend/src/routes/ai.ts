@@ -11,6 +11,9 @@ const router = Router();
 // Check if database is connected
 const isDbConnected = () => mongoose.connection.readyState === 1;
 
+// Check if a string is a valid MongoDB ObjectId
+const isValidObjectId = (id: string) => mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === id;
+
 // Initialize Gemini API client safely
 const getGeminiClient = () => {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -33,7 +36,7 @@ router.get('/chat/history', authenticateToken, async (req: AuthRequest, res: Res
   if (!userId) return res.status(401).json({ message: 'User ID missing' });
 
   try {
-    if (isDbConnected()) {
+    if (isDbConnected() && isValidObjectId(userId)) {
       let chat = await ChatHistory.findOne({ user: userId });
       if (!chat) {
         chat = new ChatHistory({ user: userId, messages: [] });
@@ -41,7 +44,7 @@ router.get('/chat/history', authenticateToken, async (req: AuthRequest, res: Res
       }
       return res.json(chat.messages);
     } else {
-      // Fallback
+      // Fallback (MemoryDB or non-ObjectId user)
       let messages = memoryDb.chatHistory.get(userId);
       if (!messages) {
         messages = [];
@@ -70,7 +73,7 @@ router.post('/chat', authenticateToken, async (req: AuthRequest, res: Response) 
     let recentMessages: any[] = [];
     let saveHandler: (replyText: string) => Promise<void>;
 
-    if (isDbConnected()) {
+    if (isDbConnected() && isValidObjectId(userId)) {
       let chatDb = await ChatHistory.findOne({ user: userId });
       if (!chatDb) {
         chatDb = new ChatHistory({ user: userId, messages: [] });
@@ -87,7 +90,7 @@ router.post('/chat', authenticateToken, async (req: AuthRequest, res: Response) 
         await chatDb!.save();
       };
     } else {
-      // Fallback: MemoryDB
+      // Fallback: MemoryDB (or when userId is not a valid ObjectId)
       let messages = memoryDb.chatHistory.get(userId);
       if (!messages) {
         messages = [];

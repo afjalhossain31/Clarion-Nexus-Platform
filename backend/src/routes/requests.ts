@@ -11,6 +11,9 @@ const router = Router();
 // Check if database is connected
 const isDbConnected = () => mongoose.connection.readyState === 1;
 
+// Check if a string is a valid MongoDB ObjectId
+const isValidObjectId = (id: string) => mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === id;
+
 // @route   POST /api/requests
 // @desc    Create a new custom project request
 router.post(
@@ -32,7 +35,7 @@ router.post(
     const userId = req.user?.id;
 
     try {
-      if (isDbConnected()) {
+      if (isDbConnected() && isValidObjectId(userId!)) {
         const newRequest = new RequestModel({
           user: userId,
           title,
@@ -75,7 +78,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   const userRole = req.user?.role;
 
   try {
-    if (isDbConnected()) {
+    if (isDbConnected() && isValidObjectId(userId!)) {
       let requests;
       if (userRole === 'admin') {
         requests = await RequestModel.find().populate('user', 'name email avatarUrl').sort({ createdAt: -1 });
