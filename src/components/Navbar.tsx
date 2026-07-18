@@ -26,20 +26,20 @@ export default function Navbar() {
 
   const navLinks = isAuthenticated
     ? [
-        { href: '/', label: 'Home' },
-        { href: '/explore', label: 'Explore' },
-        { href: '/items/add', label: 'Add Request' },
-        { href: '/items/manage', label: 'Manage Work' },
-        { href: '/generate', label: 'AI Proposal' },
-        { href: '/about', label: 'About' },
-        { href: '/contact', label: 'Contact' },
-      ]
+      { href: '/', label: 'Home' },
+      { href: '/explore', label: 'Explore' },
+      { href: '/items/add', label: 'Add Request' },
+      { href: '/items/manage', label: 'Manage Work' },
+      { href: '/generate', label: 'AI Proposal' },
+      { href: '/about', label: 'About' },
+      { href: '/contact', label: 'Contact' },
+    ]
     : [
-        { href: '/', label: 'Home' },
-        { href: '/explore', label: 'Explore' },
-        { href: '/about', label: 'About' },
-        { href: '/contact', label: 'Contact' },
-      ];
+      { href: '/', label: 'Home' },
+      { href: '/explore', label: 'Explore' },
+      { href: '/about', label: 'About' },
+      { href: '/contact', label: 'Contact' },
+    ];
 
   const isActive = (href: string) => {
     if (href === '/') {
@@ -68,11 +68,10 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-250 ${
-                  isActive(link.href)
-                    ? 'text-brand-blue bg-brand-blue/10 dark:bg-brand-blue/15'
-                    : 'text-app-fg/75 hover:text-brand-blue hover:bg-card-border/40'
-                }`}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-250 ${isActive(link.href)
+                  ? 'text-brand-blue bg-brand-blue/10 dark:bg-brand-blue/15'
+                  : 'text-app-fg/75 hover:text-brand-blue hover:bg-card-border/40'
+                  }`}
               >
                 {link.label}
               </Link>
@@ -177,11 +176,10 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
-                className={`block px-3 py-2 rounded-lg text-base font-medium transition-colors ${
-                  isActive(link.href)
-                    ? 'text-brand-blue bg-brand-blue/10'
-                    : 'text-app-fg/70 hover:text-brand-blue hover:bg-card-border/30'
-                }`}
+                className={`block px-3 py-2 rounded-lg text-base font-medium transition-colors ${isActive(link.href)
+                  ? 'text-brand-blue bg-brand-blue/10'
+                  : 'text-app-fg/70 hover:text-brand-blue hover:bg-card-border/30'
+                  }`}
               >
                 {link.label}
               </Link>
@@ -189,8 +187,8 @@ export default function Navbar() {
 
             {isAuthenticated && user ? (
               <div className="pt-4 mt-4 border-t border-card-border flex items-center justify-between">
-                <Link 
-                  href="/profile" 
+                <Link
+                  href="/profile"
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-2 hover:opacity-90 transition-opacity"
                 >
