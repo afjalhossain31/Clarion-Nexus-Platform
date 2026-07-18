@@ -141,6 +141,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="client@nexus.com"
+                suppressHydrationWarning
                 className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-card-border bg-app-bg text-sm focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30"
               />
             </div>
@@ -157,6 +158,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                suppressHydrationWarning
                 className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-card-border bg-app-bg text-sm focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30"
               />
             </div>

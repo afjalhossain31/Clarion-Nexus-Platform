@@ -90,6 +90,7 @@ export default function RegisterPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Jane Doe"
+                suppressHydrationWarning
                 className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-card-border bg-app-bg text-sm focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30"
               />
             </div>
@@ -106,6 +107,7 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="jane.doe@example.com"
+                suppressHydrationWarning
                 className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-card-border bg-app-bg text-sm focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/30"
               />
             </div>
