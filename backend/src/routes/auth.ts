@@ -6,16 +6,26 @@ import mongoose from 'mongoose';
 import { OAuth2Client } from 'google-auth-library';
 import { User } from '../models/User';
 import * as memoryDb from '../memoryDb';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'clarion_nexus_super_secret_session_token_key_123!';
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
-const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+
+// Lazy configuration helper functions
+const getJwtSecret = () => process.env.JWT_SECRET || 'clarion_nexus_super_secret_session_token_key_123!';
+const getGoogleClient = () => {
+  const clientId = process.env.GOOGLE_CLIENT_ID || '';
+  return {
+    client: new OAuth2Client(clientId),
+    clientId
+  };
+};
 
 
 // Helper to sign JWT
 const signToken = (userId: string, role: string) => {
-  return jwt.sign({ id: userId, role }, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ id: userId, role }, getJwtSecret(), { expiresIn: '7d' });
 };
 
 // Check if mongoose is connected
@@ -269,9 +279,10 @@ router.post('/google', async (req: Request, res: Response) => {
 
   try {
     // --- Verify Google ID token ---
-    const ticket = await googleClient.verifyIdToken({
+    const { client, clientId } = getGoogleClient();
+    const ticket = await client.verifyIdToken({
       idToken: credential,
-      audience: GOOGLE_CLIENT_ID,
+      audience: clientId,
     });
 
     const payload = ticket.getPayload();
