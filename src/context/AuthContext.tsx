@@ -131,14 +131,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const googleLogin = async (name: string, email: string, googleId: string, avatarUrl: string) => {
+  // Accept real Google credential (ID token) from Google Sign-In
+  const googleLogin = async (credential: string) => {
     setIsLoading(true);
     setError(null);
     try {
       const res = await fetch(`${API_URL}/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, googleId, avatarUrl }),
+        body: JSON.stringify({ credential }),
       });
       const data = await res.json();
       if (!res.ok) {
