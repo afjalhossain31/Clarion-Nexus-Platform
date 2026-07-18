@@ -1,6 +1,6 @@
 # Clarion Nexus Platform
 
-An Agentic AI-Powered Workspace developed for the daily operations and client management of Clarion Nexus Limited.
+## An Agentic AI-Powered Workspace developed for the daily operations and client management of Clarion Nexus Limited.
 
 ## Your all-in-one hub for digital solutions.
 
@@ -16,14 +16,58 @@ Clients can explore services, submit project requests, track them through a dash
 
 Built as a full stack agentic AI application end to end with modern technologies and best practices.
 
+ --- 
 ## Tech Stack
 
-- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
-- **Backend**: Express.js, TypeScript, MySQL
+- **Frontend**: Next.js 14 (App Router), TypeScript, Framer Motion,next-themes Tailwind CSS
+- **Backend**: Node.js, Express.js, TypeScript, MongoDB (Mongoose), JWT (jsonwebtoken), Bcrypt (bcrypt) 
 - **AI**: Gemini API
 - **Deployment**: Vercel, Render
+---
 
-## Getting Starte 
+## Project structure
+
+```
+clarion-nexus/              # frontend
+  src/app/                  # pages (home, login, register, dashboard, explore,
+                             # services/[id], items/add, items/manage, generate, about, contact)
+  src/components/           # Navbar, Footer, Hero, Services, ChatWidget, ServiceCard, etc.
+  src/lib/                  # api.ts fetch wrapper, AuthContext.tsx
+
+clarion-nexus-backend/      # backend
+  src/models/                # User, Service, Request, Review, ChatHistory
+  src/routes/                 # authRoutes, serviceRoutes, requestRoutes, aiRoutes
+  src/controllers/             # authController, serviceController, requestController, aiController
+  src/middleware/               # auth.ts, error.ts, validate.ts
+  src/config/                    # db.ts, ai.ts
+  src/scripts/seed.ts            # seeds demo user, admin user, and sample services
+  src/server.ts                  # Express entry point
+```
+
+## Architecture
+
+- **Project Structure**: Monorepo architecture with separate `frontend` and `backend` directories.
+- **API Design**: RESTful API with proper routing and request validation.
+- **Data Models**: Mongoose schemas for `User`, `Service`, `Request`, `ChatHistory`, etc.
+- **Security**: JWT-based authentication with secure password hashing and CSRF protection.
+
+## Features
+
+- **Landing page** — animated hero, dynamic services grid (pulled from MongoDB), stats counter,
+  testimonials, FAQ accordion, process timeline, final call-to-action
+- **Explore page** — search, category and price filters, sorting, pagination, skeleton loaders
+- **Service details page** — public, with overview, specs, and related services
+- **Authentication** — email/password, Google sign-in, and a one-click demo login
+- **Protected client dashboard** — `/items/add` to submit requests, `/items/manage` to track
+  and delete them
+- **AI Chat Assistant** — floating widget, remembers conversation history per user, typing
+  indicator, suggested follow-up prompts
+- **AI Content Generator** — drafts service proposals with adjustable tone and length
+- **Dark / light mode** with an animated toggle
+- **Fully responsive**, animated throughout with Framer Motion
+---
+
+## Getting Started
 
 First, run the development server:
 
@@ -43,17 +87,69 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+---
+## Running the Application
 
-To learn more about Next.js, take a look at the following resources:
+### Start backend
+```bash
+cd backend
+npm install
+npm start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Start frontend
+```bash
+cd ..
+npm install
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### API endpoints (after starting)
+- **Authentication**: `/api/auth/login`, `/api/auth/register`, `/api/auth/me`
+- **Services**: `/api/services`, `/api/services/:id`
+- **Requests**: `/api/requests` (CRUD for authenticated users)
+- **AI**: `/api/ai/chat`, `/api/ai/propose`
 
-## Deploy on Vercel
+### Demo user
+Run `npx ts-node backend/src/scripts/seed.ts` once to create:
+- demo user: [EMAIL_ADDRESS]` / demo123`
+- admin user: [EMAIL_ADDRESS]` / admin123`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Backend (`clarion-nexus-backend/.env`)
+```env
+PORT=5000
+MONGODB_URI=your_mongo_uri
+JWT_SECRET=your_jwt_secret
+CORS_ORIGIN=http://localhost:3000
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Frontend (`clarion-nexus/.env.local`)
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+```
+---
+## Environment Variables   
+
+Backend (.env) 
+
+```env
+PORT=5000 
+MONGODB_URI="mongodb://localhost:27017/clarion_nexus" 
+JWT_SECRET=your_secret 
+CORS_OR IGIN=http://localhost:3000 
+GEMINI_API_KEY=your_key
+```
+
+Frontend (.env.local)
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+```
+
+## License
+
+This project is licensed under the MIT License.
+
+
+
+
