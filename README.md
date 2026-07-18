@@ -1,6 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Clarion Nexus Platform
 
-## Getting Started
+An Agentic AI-Powered Workspace developed for the daily operations and client management of Clarion Nexus Limited.
+
+## Your all-in-one hub for digital solutions.
+
+Clarion Nexus is a production-ready platform for a digital agency offering:
+- Software Development
+- AI Development
+- Web Development
+- UI/UX design
+- Digital Marketing
+- SEO
+
+Clients can explore services, submit project requests, track them through a dashboard, and use two AI-powered features — a context-aware AI assistant and an AI proposal builder.
+
+Built as a full stack agentic AI application end to end with modern technologies and best practices.
+
+## Tech Stack
+
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
+- **Backend**: Express.js, TypeScript, MySQL
+- **AI**: Gemini API
+- **Deployment**: Vercel, Render
+
+## Getting Starte 
 
 First, run the development server:
 
