@@ -1,26 +1,107 @@
 @import "tailwindcss";
 
+@theme {
+  --font-display: var(--font-sora), sans-serif;
+  --font-sans: var(--font-inter), sans-serif;
+  
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-purple: var(--brand-purple);
+  --color-app-bg: var(--app-bg);
+  --color-app-fg: var(--app-fg);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --brand-blue: #1d4ed8;       /* Light: Royal Blue */
+  --brand-purple: #7c3aed;     /* Light: Royal Purple */
+  --app-bg: #f8fafc;           /* Light: Slate 50 */
+  --app-fg: #0f172a;           /* Light: Slate 900 */
+  --card-bg: #ffffff;          /* Light: Pure White */
+  --card-border: #e2e8f0;      /* Light: Slate 200 */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --brand-blue: #3b82f6;       /* Dark: Bright Blue */
+  --brand-purple: #a78bfa;     /* Dark: Bright Purple */
+  --app-bg: #090d16;           /* Dark: Deep Space Navy */
+  --app-fg: #f8fafc;           /* Dark: Slate 50 */
+  --card-bg: rgba(17, 24, 39, 0.6); /* Dark: Transparent Gray 900 */
+  --card-border: #1f2937;      /* Dark: Gray 800 */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Global body resets */
+body {
+  background-color: var(--app-bg);
+  color: var(--app-fg);
+  font-family: var(--font-inter), sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Uniform premium card layout styling */
+.card-standard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 1.25rem; /* 20px */
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--card-border);
+  background-color: var(--card-bg);
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+}
+
+.card-standard:hover {
+  transform: translateY(-0.35rem);
+  border-color: var(--brand-blue);
+  box-shadow: 0 12px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+}
+
+.dark .card-standard:hover {
+  box-shadow: 0 12px 25px -5px rgba(59, 130, 246, 0.15), 0 8px 10px -6px rgba(167, 139, 250, 0.1);
+}
+
+/* Bouncing dots for typing indicators */
+@keyframes bounce-slow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.dot-bounce {
+  animation: bounce-slow 1s infinite ease-in-out;
+}
+.dot-bounce:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.dot-bounce:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Animated timeline line gradient */
+.timeline-gradient {
+  background: linear-gradient(to bottom, var(--brand-blue), var(--brand-purple));
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-blue);
 }
