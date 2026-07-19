@@ -42,8 +42,7 @@ export default function LoginPage() {
       const google = (window as any).google;
       if (google) {
         google.accounts.id.initialize({
-          client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '192933809772-3q60ho5ekgndc0ncbqsu6vtq8oo8unfs.apps.googleusercontent.com',
-          callback: handleCredentialResponse,
+          client_id: `${process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '192933809772-3q60ho5ekgndc0ncbqsu6vtq8oo8unfs.apps.googleusercontent.com'}`, callback: handleCredentialResponse,
         });
 
         const container = document.getElementById('googleSignInButton');
@@ -54,6 +53,7 @@ export default function LoginPage() {
             width: container.offsetWidth || 382,
             text: 'continue_with',
             shape: 'rectangular',
+            locale: 'en',
           });
         }
       }
@@ -106,7 +106,7 @@ export default function LoginPage() {
         setIsRegister(false);
         setPassword('');
         setReoPassword('');
-        setValidationError('Registration successful! Please sign in.'); // Can act as a success message if styled nicely, or just a temporary alert
+        setValidationError('Registration successful! Please sign in.');
       } else {
         await login(email, password);
       }
