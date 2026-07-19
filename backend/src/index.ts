@@ -20,7 +20,7 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/clarion-ne
 app.use(cors({
   origin: '*', // For testing purposes, allows frontend connections from anywhere
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
@@ -138,10 +138,10 @@ app.get('/', async (req: Request, res: Response) => {
   <div class="stats-row">
     <div class="stat"><div class="stat-val">${services.length}</div><div class="stat-lbl">Services</div></div>
     <div class="stat"><div class="stat-val">${requests.length}</div><div class="stat-lbl">Requests</div></div>
-    <div class="stat"><div class="stat-val">${chatHistories.reduce((a:number, c:any) => a + (c.messages?.length || 0), 0)}</div><div class="stat-lbl">Chat Messages</div></div>
+    <div class="stat"><div class="stat-val">${chatHistories.reduce((a: number, c: any) => a + (c.messages?.length || 0), 0)}</div><div class="stat-lbl">Chat Messages</div></div>
     <div class="stat"><div class="stat-val">${users.length}</div><div class="stat-lbl">Users</div></div>
-    <div class="stat"><div class="stat-val">${requests.filter((r:any)=>r.status==='pending').length}</div><div class="stat-lbl">Pending</div></div>
-    <div class="stat"><div class="stat-val">${requests.filter((r:any)=>r.status==='completed').length}</div><div class="stat-lbl">Completed</div></div>
+    <div class="stat"><div class="stat-val">${requests.filter((r: any) => r.status === 'pending').length}</div><div class="stat-lbl">Pending</div></div>
+    <div class="stat"><div class="stat-val">${requests.filter((r: any) => r.status === 'completed').length}</div><div class="stat-lbl">Completed</div></div>
   </div>
 
   <!-- Services -->
@@ -167,17 +167,17 @@ app.get('/', async (req: Request, res: Response) => {
     ${requests.length === 0 ? '<div class="empty">No project requests yet.</div>' : `
     <div class="grid">
       ${requests.map((r: any) => {
-        const u = r.user as any;
-        const sc = { pending: 'tag-yellow', 'in-progress': 'tag-blue', completed: 'tag-green', rejected: 'tag-red' }[r.status as string] || 'tag-yellow';
-        return `<div class="card">
+      const u = r.user as any;
+      const sc = { pending: 'tag-yellow', 'in-progress': 'tag-blue', completed: 'tag-green', rejected: 'tag-red' }[r.status as string] || 'tag-yellow';
+      return `<div class="card">
           <div class="card-title">${r.title}</div>
           <div class="card-sub">${r.shortDesc}</div>
-          ${u && typeof u === 'object' ? `<div style="margin-bottom:8px"><img class="avatar" src="${u.avatarUrl||''}" onerror="this.style.display='none'"/><span style="font-size:.72rem;color:#94a3b8">${u.name} · ${u.email}</span></div>` : ''}
+          ${u && typeof u === 'object' ? `<div style="margin-bottom:8px"><img class="avatar" src="${u.avatarUrl || ''}" onerror="this.style.display='none'"/><span style="font-size:.72rem;color:#94a3b8">${u.name} · ${u.email}</span></div>` : ''}
           <span class="tag ${sc}">${r.status}</span>
           <span class="tag tag-blue">$${r.budget?.toLocaleString()}</span>
           <div class="meta">📅 ${new Date(r.createdAt).toLocaleDateString('en-US')} · ID: ${r._id}</div>
         </div>`;
-      }).join('')}
+    }).join('')}
     </div>`}
   </section>
 
@@ -187,8 +187,8 @@ app.get('/', async (req: Request, res: Response) => {
     ${chatHistories.length === 0 ? '<div class="empty">No chat histories yet.</div>' : `
     <div class="grid">
       ${chatHistories.map((ch: any) => {
-        const u = ch.user as any;
-        return `<div class="card">
+      const u = ch.user as any;
+      return `<div class="card">
           <div class="card-title">${u?.name || 'Unknown User'} <span style="font-size:.68rem;color:#64748b">${u?.email || ''}</span></div>
           <div class="meta" style="margin-bottom:10px">${ch.messages?.length || 0} messages · Last: ${ch.updatedAt ? new Date(ch.updatedAt).toLocaleDateString() : '-'}</div>
           <div class="msg-wrap">
@@ -199,7 +199,7 @@ app.get('/', async (req: Request, res: Response) => {
               </div>`).join('')}
           </div>
         </div>`;
-      }).join('')}
+    }).join('')}
     </div>`}
   </section>
 
@@ -211,7 +211,7 @@ app.get('/', async (req: Request, res: Response) => {
       ${users.map((u: any) => `
         <div class="card">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <img class="avatar" src="${u.avatarUrl||''}" style="width:36px;height:36px" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${u._id}'"/>
+            <img class="avatar" src="${u.avatarUrl || ''}" style="width:36px;height:36px" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=${u._id}'"/>
             <div>
               <div class="card-title" style="margin-bottom:2px">${u.name}</div>
               <div style="font-size:.68rem;color:#64748b">${u.email}</div>

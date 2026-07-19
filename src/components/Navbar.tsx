@@ -104,8 +104,8 @@ export default function Navbar() {
                       className="h-8 w-8 rounded-full border border-brand-blue/30 bg-card-bg object-cover"
                     />
                   ) : (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-brand-blue/30 bg-brand-blue/10 text-brand-blue">
-                      <User className="h-4 w-4" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-brand-blue/30 bg-brand-blue/10 text-brand-blue font-bold text-sm uppercase">
+                      {user.name ? user.name.charAt(0) : <User className="h-4 w-4" />}
                     </div>
                   )}
                   <div className="flex flex-col text-left">
@@ -199,8 +199,8 @@ export default function Navbar() {
                       className="h-9 w-9 rounded-full bg-card-bg object-cover"
                     />
                   ) : (
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-blue/30 bg-brand-blue/10 text-brand-blue">
-                      <User className="h-4.5 w-4.5" />
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-blue/30 bg-brand-blue/10 text-brand-blue font-bold text-base uppercase">
+                      {user.name ? user.name.charAt(0) : <User className="h-4.5 w-4.5" />}
                     </div>
                   )}
                   <div>
