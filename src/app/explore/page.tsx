@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { Search, SlidersHorizontal, Star, ArrowLeftRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { Search, SlidersHorizontal, Star, ArrowLeftRight, ChevronLeft, ChevronRight, Sparkles, BarChart2, Tag, BookOpen, ImageIcon } from 'lucide-react';
 import { API_URL } from '../../context/AuthContext';
 
 interface ServiceItem {
@@ -91,6 +91,26 @@ export default function ExplorePage() {
         <p className="text-sm text-app-fg/60 max-w-xl">
           Browse and filter our agency capabilities. Easily request quotes, inspect deliverables, or build proposal outlines.
         </p>
+      </div>
+
+      {/* AI Tools Quick Links */}
+      <div className="mb-10 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Link href="/ai/analyzer" className="p-4 rounded-2xl border border-brand-blue/20 bg-brand-blue/5 hover:bg-brand-blue/10 hover:scale-[1.02] transition-all flex flex-col items-center text-center gap-2">
+          <BarChart2 className="h-6 w-6 text-brand-blue" />
+          <span className="text-sm font-semibold text-app-fg">Data Analyzer</span>
+        </Link>
+        <Link href="/ai/classifier" className="p-4 rounded-2xl border border-brand-purple/20 bg-brand-purple/5 hover:bg-brand-purple/10 hover:scale-[1.02] transition-all flex flex-col items-center text-center gap-2">
+          <Tag className="h-6 w-6 text-brand-purple" />
+          <span className="text-sm font-semibold text-app-fg">Auto Classifier</span>
+        </Link>
+        <Link href="/ai/document" className="p-4 rounded-2xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 hover:scale-[1.02] transition-all flex flex-col items-center text-center gap-2">
+          <BookOpen className="h-6 w-6 text-green-500" />
+          <span className="text-sm font-semibold text-app-fg">Document AI</span>
+        </Link>
+        <Link href="/ai/vision" className="p-4 rounded-2xl border border-orange-500/20 bg-orange-500/5 hover:bg-orange-500/10 hover:scale-[1.02] transition-all flex flex-col items-center text-center gap-2">
+          <ImageIcon className="h-6 w-6 text-orange-500" />
+          <span className="text-sm font-semibold text-app-fg">Vision AI</span>
+        </Link>
       </div>
 
       {/* Filters Panel Box */}

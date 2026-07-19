@@ -4,6 +4,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import mongoose from 'mongoose';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 import { ChatHistory, IMessage } from '../models/ChatHistory';
+import { uploadDataFile, uploadDocument, uploadImage } from '../middleware/upload';
+const pdfParse = require('pdf-parse');
 
 const router = Router();
 
@@ -135,8 +137,8 @@ In your response, write exactly three suggested follow-up question chips for the
 - Suggestion 2
 - Suggestion 3`;
 
-        const model = genAI.getGenerativeModel({ 
-          model: 'gemini-1.5-flash',
+        const model = genAI.getGenerativeModel({
+          model: 'gemini-2.5-flash',
           systemInstruction: {
             role: 'system',
             parts: [{ text: systemPrompt }]
@@ -158,7 +160,7 @@ In your response, write exactly three suggested follow-up question chips for the
         if (fullText.includes('[SUGGESTIONS]')) {
           const parts = fullText.split('[SUGGESTIONS]');
           aiReply = parts[0].trim();
-          
+
           suggestedPrompts = parts[1]
             .split('\n')
             .map(line => line.replace(/^-\s*/, '').trim())
@@ -214,8 +216,8 @@ router.post('/generate', authenticateToken, async (req: AuthRequest, res: Respon
 
     if (genAI) {
       try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
         const systemPrompt = `You are the Clarion Nexus AI Content Generator. Generate a beautifully structured, premium project proposal draft based on these inputs:
 - Client Business Type: ${businessType}
 - Specific Requirements: ${requirements}
@@ -252,14 +254,14 @@ Maintain a highly convincing, agency-grade presentation. Output ONLY the markdow
 // Helper for Mock Chat Advisor Responses
 function getMockChatResponse(msg: string) {
   const input = msg.toLowerCase();
-  
+
   if (input.includes('price') || input.includes('cost') || input.includes('budget') || input.includes('how much')) {
     return {
       reply: 'Clarion Nexus provides custom tiered pricing depending on requirements: Brand Identity packages start at $499, technical SEO audits start at $999, and full-stack web builds start at $1,499. You can log details of your project on the "/items/add" page and our team will get back with a precise estimate!',
       prompts: ['What are standard web features?', 'How do I add a project request?', 'Tell me about SEO package costs.']
     };
   }
-  
+
   if (input.includes('web') || input.includes('dev') || input.includes('website') || input.includes('code') || input.includes('next.js')) {
     return {
       reply: 'Our core expertise is developing blazing-fast, Next.js full-stack websites with server-side rendering, responsive Tailwind styling, database persistence, and smooth Framer Motion interfaces. We also build custom Node.js and Mongoose backend databases.',
@@ -319,5 +321,164 @@ We operate in structured two-week sprints:
 - **Status**: Ready for immediate authorization.
 `;
 }
+
+// @route   POST /api/ai/data-analyzer
+// @desc    Analyze CSV/JSON files using AI
+router.post('/data-analyzer', authenticateToken, uploadDataFile.single('file'), async (req: AuthRequest, res: Response) => {
+  if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+
+  try {
+    const fileContent = req.file.buffer.toString('utf-8');
+    const genAI = getGeminiClient();
+
+    if (!genAI) {
+      return res.json({ analysis: 'MOCK AI ANALYSIS: The uploaded data shows a 15% upward trend in Q3. Key risk identified: Customer retention drop in segment B. Recommendation: Increase outreach.' });
+    }
+
+    let analysisResult = '';
+    try {
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const prompt = `Analyze the following data and provide: 1. Trend analysis 2. Summary reports 3. Risk identification 4. KPI summaries. Structure it beautifully in Markdown. Data:\n\n${fileContent.substring(0, 15000)}`;
+      const result = await model.generateContent(prompt);
+      analysisResult = result.response.text();
+    } catch (e) {
+      console.error('Gemini API failed, using mock data:', e);
+      analysisResult = 'MOCK AI ANALYSIS: The uploaded data shows a 15% upward trend in Q3. Key risk identified: Customer retention drop in segment B. Recommendation: Increase outreach.';
+    }
+    
+    res.json({ analysis: analysisResult });
+  } catch (err: any) {
+    console.error('Data Analyzer Error:', err);
+    res.status(500).json({ message: 'Error analyzing data: ' + err.message });
+  }
+});
+
+// @route   POST /api/ai/classify
+// @desc    Automatically classify and tag items
+router.post('/classify', authenticateToken, async (req: AuthRequest, res: Response) => {
+  const { items, categoryType } = req.body;
+  if (!items) return res.status(400).json({ message: 'Items are required' });
+
+  try {
+    const genAI = getGeminiClient();
+    if (!genAI) {
+      return res.json({ tags: ['Finance', 'High-Priority', 'Reviewed'] });
+    }
+
+    let tags: string[] = [];
+    try {
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const prompt = `Categorize the following items into relevant tags for the category type "${categoryType}". Return ONLY a JSON array of strings (the tags). Items: ${items}`;
+      const result = await model.generateContent(prompt);
+      let text = result.response.text();
+      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      
+      try {
+        tags = JSON.parse(text);
+      } catch (e) {
+        tags = text.split(',').map((t: string) => t.trim());
+      }
+    } catch (e) {
+      console.error('Gemini API failed, using mock tags:', e);
+      tags = ['Finance', 'High-Priority', 'Reviewed'];
+    }
+    
+    res.json({ tags });
+  } catch (err: any) {
+    console.error('Classify Error:', err);
+    res.status(500).json({ message: 'Error classifying items: ' + err.message });
+  }
+});
+
+// @route   POST /api/ai/document
+// @desc    Analyze PDF/TXT documents
+router.post('/document', authenticateToken, uploadDocument.single('file'), async (req: AuthRequest, res: Response) => {
+  if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+
+  try {
+    let text = '';
+    if (req.file.mimetype === 'application/pdf') {
+      try {
+        const data = await pdfParse(req.file.buffer);
+        text = data.text || '';
+      } catch (pdfErr: any) {
+        console.warn('pdfParse failed, falling back to raw buffer text:', pdfErr.message);
+        text = req.file.buffer.toString('utf-8').replace(/[^\x20-\x7E\n\r\t]/g, ' ').trim();
+        if (!text || text.length < 20) {
+          return res.json({
+            summary: '## Document Uploaded\n\nThe uploaded PDF could not be parsed (it may be scanned or encrypted). Please try uploading a text-based PDF or a .txt file.\n\n**Tip:** Use a PDF that was exported from Word, Google Docs, etc. for best results.'
+          });
+        }
+      }
+    } else {
+      text = req.file.buffer.toString('utf-8');
+    }
+
+    if (!text || text.trim().length < 5) {
+      return res.json({ summary: '## Empty Document\n\nNo readable text was found in the uploaded file.' });
+    }
+
+    const genAI = getGeminiClient();
+    if (!genAI) {
+      return res.json({ summary: `## Document Analysis (Mock)\n\nFile: **${req.file.originalname}**\n\nThis document outlines the key project deliverables for Q4.\n\n## Action Items\n1. Deploy AI server\n2. Update frontend\n\n## Extracted Data\n| Item | Value |\n|---|---|\n| Revenue | $5k |` });
+    }
+
+    let summaryResult = '';
+    try {
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const prompt = `Analyze this document. Provide: 1. A short summary 2. Key point extraction 3. Any tables found 4. Action items. Structure in Markdown.\n\nDocument: ${text.substring(0, 15000)}`;
+      const result = await model.generateContent(prompt);
+      summaryResult = result.response.text();
+    } catch (e) {
+      console.error('Gemini API failed, using mock summary:', e);
+      summaryResult = `## Document Analysis (Mock)\n\nFile: **${req.file.originalname}**\n\nThis document outlines the key project deliverables for Q4.\n\n## Action Items\n1. Deploy AI server\n2. Update frontend\n\n## Extracted Data\n| Item | Value |\n|---|---|\n| Revenue | $5k |`;
+    }
+    
+    res.json({ summary: summaryResult });
+  } catch (err: any) {
+    console.error('Document Error:', err);
+    res.status(500).json({ message: 'Error analyzing document: ' + err.message });
+  }
+});
+
+// @route   POST /api/ai/image
+// @desc    Understand images using multimodal AI
+router.post('/image', authenticateToken, uploadImage.single('file'), async (req: AuthRequest, res: Response) => {
+  if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+
+  try {
+    const base64Data = req.file.buffer.toString('base64');
+    const genAI = getGeminiClient();
+
+    if (!genAI) {
+      return res.json({ explanation: 'MOCK IMAGE ANALYSIS: This image appears to be a screenshot of a user interface with a dashboard, charts, and a navigation bar on the left.' });
+    }
+
+    let explanationResult = '';
+    try {
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const prompt = "Analyze this image in detail. What do you see? If it's a receipt, extract the total. If it's a UI, explain the layout.";
+      
+      const result = await model.generateContent([
+        prompt,
+        {
+          inlineData: {
+            data: base64Data,
+            mimeType: req.file.mimetype
+          }
+        }
+      ]);
+      explanationResult = result.response.text();
+    } catch (e) {
+      console.error('Gemini API failed, using mock vision:', e);
+      explanationResult = 'MOCK IMAGE ANALYSIS: This image appears to be a screenshot of a user interface with a dashboard, charts, and a navigation bar on the left.';
+    }
+    
+    res.json({ explanation: explanationResult });
+  } catch (err: any) {
+    console.error('Image Error:', err);
+    res.status(500).json({ message: 'Error analyzing image: ' + err.message });
+  }
+});
 
 export default router;
