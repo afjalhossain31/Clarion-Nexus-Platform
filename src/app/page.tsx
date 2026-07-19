@@ -222,14 +222,17 @@ export default function LandingPage() {
               <ArrowRight className="h-4.5 w-4.5" />
             </Link>
 
-            {!isAuthenticated && (
+
+            {/* {!isAuthenticated && (
               <button
                 onClick={() => demoLogin('client')}
                 className="flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold border border-app-fg/20 bg-app-bg/50 text-app-fg hover:bg-app-fg/5 hover:scale-[1.02] active:scale-98 transition-all duration-200 cursor-pointer backdrop-blur-sm"
               >
                 Instant Demo Access
               </button>
-            )}
+            )} */}
+
+
           </motion.div>
         </div>
       </section>
