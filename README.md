@@ -1,6 +1,12 @@
 # Clarion Nexus Platform
 
-## An Agentic AI-Powered Workspace developed for the daily operations and client management of Clarion Nexus Limited.
+[![Live Project](https://img.shields.io/badge/🚀-Live_Project-success?style=for-the-badge)](https://clarion-nexus-frontend.vercel.app)
+[![Frontend](https://img.shields.io/badge/Frontend-Repository-blue?style=for-the-badge&logo=github)](https://clarion-nexus-frontend.vercel.app)
+[![Backend](https://img.shields.io/badge/Backend-Repository-black?style=for-the-badge&logo=github)](https://clarion-nexus-backend.vercel.app)
+
+---
+
+An Agentic AI-Powered Workspace developed for the daily operations and client management of Clarion Nexus Limited.
 
 ## Your all-in-one hub for digital solutions.
 
@@ -16,7 +22,10 @@ Clients can explore services, submit project requests, track them through a dash
 
 Built as a full stack agentic AI application end to end with modern technologies and best practices.
 
+### 🔗 Live Project
+**https://clarion-nexus-frontend.vercel.app**
  --- 
+ 
 ## Tech Stack
 
 - **Frontend**: Next.js 14 (App Router), TypeScript, Framer Motion,next-themes Tailwind CSS
